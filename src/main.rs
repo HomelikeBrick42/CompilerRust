@@ -24,23 +24,23 @@ enum TokenKind {
 impl std::fmt::Display for TokenKind {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
-            TokenKind::EndOfFile         => write!(f, "EndOfFile"),
+            TokenKind::EndOfFile => write!(f, "EndOfFile"),
 
-            TokenKind::Identifier(_name) => write!(f, "Identifier"),
-            TokenKind::Integer(_value)   => write!(f, "Integer"),
-            TokenKind::Float(_value)     => write!(f, "Float"),
-            TokenKind::String(_value)    => write!(f, "String"),
+            TokenKind::Identifier(_) => write!(f, "Identifier"),
+            TokenKind::Integer(_) => write!(f, "Integer"),
+            TokenKind::Float(_) => write!(f, "Float"),
+            TokenKind::String(_) => write!(f, "String"),
 
-            TokenKind::Plus              => write!(f, "+"),
-            TokenKind::Minus             => write!(f, "-"),
-            TokenKind::Asterisk          => write!(f, "*"),
-            TokenKind::Slash             => write!(f, "/"),
-            TokenKind::Percent           => write!(f, "%"),
+            TokenKind::Plus => write!(f, "+"),
+            TokenKind::Minus => write!(f, "-"),
+            TokenKind::Asterisk => write!(f, "*"),
+            TokenKind::Slash => write!(f, "/"),
+            TokenKind::Percent => write!(f, "%"),
 
-            TokenKind::Equals            => write!(f, "="),
+            TokenKind::Equals => write!(f, "="),
 
-            TokenKind::Colon             => write!(f, ":"),
-            TokenKind::Semicolon         => write!(f, ";"),
+            TokenKind::Colon => write!(f, ":"),
+            TokenKind::Semicolon => write!(f, ";"),
         }
     }
 }
@@ -68,13 +68,18 @@ impl Token {
 
 impl std::fmt::Display for Token {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "Kind: '{}', Position: {}, Line: {}, Column: {}, Length: {}", self.kind, self.position, self.line, self.column, self.length).unwrap();
+        write!(
+            f,
+            "Kind: '{}', Position: {}, Line: {}, Column: {}, Length: {}",
+            self.kind, self.position, self.line, self.column, self.length
+        )
+        .unwrap();
         match &self.kind {
             TokenKind::Identifier(name) => write!(f, ", Name: {}", name),
-            TokenKind::Integer(value)   => write!(f, ", Value: {}", value),
-            TokenKind::Float(value)     => write!(f, ", Value: {}", value),
-            TokenKind::String(value)    => write!(f, ", Value: {}", value),
-            _                           => write!(f, ""),
+            TokenKind::Integer(value) => write!(f, ", Value: {}", value),
+            TokenKind::Float(value) => write!(f, ", Value: {}", value),
+            TokenKind::String(value) => write!(f, ", Value: {}", value),
+            _ => write!(f, ""),
         }
     }
 }
@@ -125,7 +130,7 @@ impl Lexer {
             let start_column = self.column;
 
             let lex_chars = |lexer: &mut Lexer, kind: TokenKind, length: usize| -> Token {
-                for _i in 0..length {
+                for _ in 0..length {
                     lexer.next_char();
                 }
                 return Token::new(kind, start_position, start_line, start_column, length);
@@ -147,7 +152,7 @@ impl Lexer {
 
                 ' ' | '\t' | '\n' | '\r' => {
                     self.next_char();
-                },
+                }
 
                 'A'..='Z' | 'a'..='z' | '_' => {
                     let mut length: usize = 0;
@@ -158,14 +163,20 @@ impl Lexer {
                             '0'..='9' | 'A'..='Z' | 'a'..='z' | '_' => {
                                 length += 1;
                                 name.push(self.next_char());
-                            },
+                            }
 
                             _ => break,
                         }
                     }
 
-                    return Token::new(TokenKind::Identifier(name), start_position, start_line, start_column, length);
-                },
+                    return Token::new(
+                        TokenKind::Identifier(name),
+                        start_position,
+                        start_line,
+                        start_column,
+                        length,
+                    );
+                }
 
                 '0'..='9' => {
                     let mut length: usize = 0;
@@ -174,9 +185,15 @@ impl Lexer {
                     let base: u64 = if self.current_char() == '0' {
                         self.next_char();
                         match self.current_char() {
-                            'x' => { self.next_char(); 16 },
-                            'b' => { self.next_char(); 2 },
-                            _ => 10
+                            'x' => {
+                                self.next_char();
+                                16
+                            }
+                            'b' => {
+                                self.next_char();
+                                2
+                            }
+                            _ => 10,
                         }
                     } else {
                         10
@@ -191,28 +208,22 @@ impl Lexer {
 
                                 int_value *= base;
                                 int_value += match self.current_char() {
-                                    '0'..='9' => {
-                                        self.current_char() as u64 - '0' as u64
-                                    },
+                                    '0'..='9' => self.current_char() as u64 - '0' as u64,
 
-                                    'a'..='z' => {
-                                        self.current_char() as u64 - 'a' as u64 + 10
-                                    },
+                                    'a'..='z' => self.current_char() as u64 - 'a' as u64 + 10,
 
-                                    'A'..='Z' => {
-                                        self.current_char() as u64 - 'A' as u64 + 10
-                                    },
+                                    'A'..='Z' => self.current_char() as u64 - 'A' as u64 + 10,
 
                                     _ => panic!(),
                                 };
 
                                 self.next_char();
-                            },
+                            }
 
                             '_' => {
                                 length += 1;
                                 self.next_char();
-                            },
+                            }
 
                             '.' => {
                                 self.next_char();
@@ -229,44 +240,58 @@ impl Lexer {
                                             float_value += match self.current_char() {
                                                 '0'..='9' => {
                                                     self.current_char() as u64 - '0' as u64
-                                                },
+                                                }
 
                                                 'a'..='z' => {
                                                     self.current_char() as u64 - 'a' as u64 + 10
-                                                },
+                                                }
 
                                                 'A'..='Z' => {
                                                     self.current_char() as u64 - 'A' as u64 + 10
-                                                },
+                                                }
 
                                                 _ => panic!(),
-                                            } as f64 / denominator as f64;
+                                            }
+                                                as f64
+                                                / denominator as f64;
 
                                             self.next_char();
-                                        },
+                                        }
 
                                         '_' => {
                                             length += 1;
                                             self.next_char();
-                                        },
+                                        }
 
                                         '.' => {
                                             panic!(); // TODO: Error message
-                                        },
+                                        }
 
                                         _ => break,
                                     }
                                 }
 
-                                return Token::new(TokenKind::Float(float_value), start_position, start_line, start_column, length);
-                            },
+                                return Token::new(
+                                    TokenKind::Float(float_value),
+                                    start_position,
+                                    start_line,
+                                    start_column,
+                                    length,
+                                );
+                            }
 
                             _ => break,
                         }
                     }
 
-                    return Token::new(TokenKind::Integer(int_value), start_position, start_line, start_column, length);
-                },
+                    return Token::new(
+                        TokenKind::Integer(int_value),
+                        start_position,
+                        start_line,
+                        start_column,
+                        length,
+                    );
+                }
 
                 '"' => {
                     self.next_char();
@@ -283,28 +308,52 @@ impl Lexer {
                                 self.next_char();
 
                                 match self.current_char() {
-                                    '\\' => { self.next_char(); string.push('\\'); },
-                                    '"' => { self.next_char(); string.push('"'); },
-                                    '0' => { self.next_char(); string.push('\0'); },
-                                    't' => { self.next_char(); string.push('\t'); },
-                                    'n' => { self.next_char(); string.push('\n'); },
-                                    'r' => { self.next_char(); string.push('\r'); },
+                                    '\\' => {
+                                        self.next_char();
+                                        string.push('\\');
+                                    }
+                                    '"' => {
+                                        self.next_char();
+                                        string.push('"');
+                                    }
+                                    '0' => {
+                                        self.next_char();
+                                        string.push('\0');
+                                    }
+                                    't' => {
+                                        self.next_char();
+                                        string.push('\t');
+                                    }
+                                    'n' => {
+                                        self.next_char();
+                                        string.push('\n');
+                                    }
+                                    'r' => {
+                                        self.next_char();
+                                        string.push('\r');
+                                    }
 
                                     _ => panic!(),
                                 }
-                            },
+                            }
 
                             _ => {
                                 length += 1;
                                 string.push(self.next_char());
-                            },
+                            }
                         }
                     }
 
                     assert_eq!(self.next_char(), '"'); // TODO: Error message
 
-                    return Token::new(TokenKind::String(string), start_position, start_line, start_column, length);
-                },
+                    return Token::new(
+                        TokenKind::String(string),
+                        start_position,
+                        start_line,
+                        start_column,
+                        length,
+                    );
+                }
 
                 _ => panic!(), // TODO: Error message
             };
@@ -323,6 +372,7 @@ enum AstStatement {
 enum AstExpression {
     BinaryExpression(Box<AstBinaryExpression>),
     UnaryExpression(Box<AstUnaryExpression>),
+    Literal(Box<AstLiteral>),
 }
 
 struct AstUnaryExpression {
@@ -332,10 +382,7 @@ struct AstUnaryExpression {
 
 impl AstUnaryExpression {
     pub fn new(operator: Token, operand: AstExpression) -> AstExpression {
-        return AstExpression::UnaryExpression(Box::new(AstUnaryExpression {
-            operator,
-            operand,
-        }));
+        return AstExpression::UnaryExpression(Box::new(AstUnaryExpression { operator, operand }));
     }
 }
 
@@ -355,6 +402,16 @@ impl AstBinaryExpression {
     }
 }
 
+struct AstLiteral {
+    token: Token,
+}
+
+impl AstLiteral {
+    pub fn new(token: Token) -> AstExpression {
+        return AstExpression::Literal(Box::new(AstLiteral { token }));
+    }
+}
+
 struct Parser {
     source: String,
     tokens: Vec<Token>,
@@ -368,11 +425,8 @@ impl Parser {
         let mut lexer = Lexer::new(source);
         loop {
             let token = lexer.next_token();
-
             let end: bool = token.kind == TokenKind::EndOfFile;
-
             tokens.push(token);
-
             if end {
                 break;
             }
@@ -385,18 +439,18 @@ impl Parser {
         };
     }
 
-    fn peek_token(&self, offset: usize) -> &Token {
+    fn peek_token(&self, offset: usize) -> Token {
         if self.position + offset >= self.tokens.len() {
-            return self.tokens.get(self.tokens.len() - 1).unwrap();
+            return self.tokens.get(self.tokens.len() - 1).unwrap().clone();
         }
-        return self.tokens.get(self.position + offset).unwrap();
+        return self.tokens.get(self.position + offset).unwrap().clone();
     }
 
-    fn current_token(&self) -> &Token {
+    fn current_token(&self) -> Token {
         return self.peek_token(0);
     }
 
-    fn next_token(&mut self) -> &Token {
+    fn next_token(&mut self) -> Token {
         let token = self.current_token();
         self.position += 1;
         return token;
@@ -407,41 +461,50 @@ impl Parser {
     }
 
     fn parse_primary_expression(&mut self) -> AstExpression {
-        unimplemented!();
+        match self.current_token().kind {
+            TokenKind::Identifier(_)
+            | TokenKind::Integer(_)
+            | TokenKind::Float(_)
+            | TokenKind::String(_) => return AstLiteral::new(self.next_token()),
+            _ => panic!(), // TODO: Error message
+        }
     }
 
     fn parse_binary_expression(&mut self, presedence: u8) -> AstExpression {
         let unary_presedence = Parser::get_unary_presedence(self.current_token());
-        let left = if unary_presedence != 0 && unary_presedence > presedence {
+        let mut left = if unary_presedence != 0 && unary_presedence > presedence {
             let operator = self.next_token();
             let operand = self.parse_binary_expression(unary_presedence);
             AstUnaryExpression::new(operator.clone(), operand)
         } else {
-            self.parse_expression()
+            self.parse_primary_expression()
         };
 
         loop {
+            let binary_presedence = Parser::get_binary_presedence(self.current_token());
+            if binary_presedence == 0 || binary_presedence <= presedence {
+                break;
+            }
+
+            let operator = self.next_token();
+            let right = self.parse_binary_expression(binary_presedence);
+            left = AstBinaryExpression::new(left, operator, right);
         }
+
+        return left;
     }
 
-    fn get_unary_presedence(token: &Token) -> u8 {
+    fn get_unary_presedence(token: Token) -> u8 {
         match &token.kind {
-            TokenKind::Plus |
-            TokenKind::Minus => return 3,
-
+            TokenKind::Plus | TokenKind::Minus => return 3,
             _ => return 0,
         }
     }
 
-    fn get_binary_presedence(token: &Token) -> u8 {
+    fn get_binary_presedence(token: Token) -> u8 {
         match &token.kind {
-            TokenKind::Asterisk |
-            TokenKind::Slash |
-            TokenKind::Percent => return 2,
-
-            TokenKind::Plus |
-            TokenKind::Minus => return 1,
-
+            TokenKind::Asterisk | TokenKind::Slash | TokenKind::Percent => return 2,
+            TokenKind::Plus | TokenKind::Minus => return 1,
             _ => return 0,
         }
     }
@@ -467,4 +530,38 @@ fn main() {
 
     let mut parser = Parser::new(&source);
     let expression = parser.parse_expression();
+    print_expression(&expression);
+    println!();
+}
+
+fn print_expression(expression: &AstExpression) {
+    fn print_token(token: &Token) {
+        match &token.kind {
+            TokenKind::Identifier(name) => print!("{}", name),
+            TokenKind::Integer(value) => print!("{}", value),
+            TokenKind::Float(value) => print!("{}", value),
+            TokenKind::String(value) => print!("\"{}\"", value),
+            _ => print!("{}", token.kind),
+        }
+    }
+
+    match expression {
+        AstExpression::Literal(l) => {
+            let literal = l.as_ref();
+            print_token(&literal.token);
+        }
+
+        AstExpression::BinaryExpression(b) => {
+            let binary_expression = b.as_ref();
+            print!("(");
+            print_expression(&binary_expression.left);
+            print!(" ");
+            print_token(&binary_expression.operator);
+            print!(" ");
+            print_expression(&binary_expression.right);
+            print!(")");
+        }
+
+        _ => panic!(),
+    }
 }
